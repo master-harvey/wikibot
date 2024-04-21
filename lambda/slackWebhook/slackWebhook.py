@@ -1,4 +1,5 @@
 from json import loads
+
 def handler(event,context):
     """The lambda handler that will process 'events' (messages) from Slack [https://api.slack.com/apis/connections/events-api]. 
     This function will be deployed with a function URL that will serve as Slack's request endpoint. 
@@ -15,6 +16,6 @@ def handler(event,context):
     if event['type'] == 'url_verification':
         return { "statusCode":200, "Content-type":"text/plain", "body":event['challenge'] }
     
-    # Trigger the generateReply lambda function
+    # Asynchronously invoke the generateReply lambda function
 
     return { "statusCode": 200 }
