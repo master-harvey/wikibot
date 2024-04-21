@@ -1,4 +1,7 @@
-from json import loads
+from json import loads, dumps
+import boto3
+
+lambda_client = boto3.client('lambda')
 
 def handler(event,context):
     """The lambda handler that will process 'events' (messages) from Slack [https://api.slack.com/apis/connections/events-api]. 
@@ -17,5 +20,10 @@ def handler(event,context):
         return { "statusCode":200, "Content-type":"text/plain", "body":event['challenge'] }
     
     # Asynchronously invoke the generateReply lambda function
+    lambda_client.invoke(
+        FunctionName='WikiBot-GenerateReply',
+        InvocationType='Event',  #Specifies asynchronous execution
+        Payload=dumps(event)
+    )
 
     return { "statusCode": 200 }

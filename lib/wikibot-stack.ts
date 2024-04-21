@@ -46,6 +46,7 @@ export class WikibotStack extends Stack {
       handler: "generateReply.handler",
       code: lambda.Code.fromAsset('./lambda/generateReply')
     })
+    generateReply.grantInvoke(webhook)
     
     // Fetch updates to the wiki and update the embeddings as well
     const populateDatabase = new lambda.Function(this, "PopulateDatabase", {
