@@ -60,5 +60,9 @@ export class WikibotStack extends Stack {
       schedule: events.Schedule.cron({ minute: '0', hour: '0' }),
       targets: [new targets.LambdaFunction(populateDatabase)],
     });
+
+    // Print the function ARNs that need to be listed on the 'Database Access' tab of the mongodb dashboard
+    new CfnOutput(this, "UpdateFunctionRole", { value: populateDatabase.role?.roleArn ?? "Update Function Role Not Found" })
+    new CfnOutput(this, "GenerateFunctionRole", { value: generateReply.role?.roleArn ?? "Generate Function Role Not Found" })
   }
 }
