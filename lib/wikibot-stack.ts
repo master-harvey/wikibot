@@ -2,7 +2,9 @@ import { Construct } from 'constructs';
 import {
   Stack, StackProps,
   CfnOutput, pipelines,
-  aws_lambda as lambda
+  aws_lambda as lambda,
+  aws_events as events,
+  aws_events_targets as targets
 } from 'aws-cdk-lib';
 import { FunctionUrlAuthType } from 'aws-cdk-lib/aws-lambda';
 
@@ -44,5 +46,19 @@ export class WikibotStack extends Stack {
       handler: "generateReply.handler",
       code: lambda.Code.fromAsset('./lambda/generateReply')
     })
+    
+    // Fetch updates to the wiki and update the embeddings as well
+    const populateDatabase = new lambda.Function(this, "PopulateDatabase", {
+      functionName: "WikiBot-PopulateDatabase",
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: "populateDatabase.handler",
+      code: lambda.Code.fromAsset('./lambda/populateDatabase')
+    })
+
+    // Create an EventBridge rule to trigger the function every day at midnight
+    const rule = new events.Rule(this, 'DailyTrigger', {
+      schedule: events.Schedule.cron({ minute: '0', hour: '0' }),
+      targets: [new targets.LambdaFunction(populateDatabase)],
+    });
   }
 }
