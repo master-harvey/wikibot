@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from json import loads
 from botocore.vendored.requests import get
 from datetime import datetime
+from html.parser import HTMLParser
 import together
 import os
 
@@ -11,27 +12,40 @@ together.api_key = os.environ["TOGETHER_API_KEY"]
 together = together.Together()
 
 embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
-vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding field name.
+vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding/index field name.
 
+#courtesy of https://stackoverflow.com/questions/14694482/converting-html-to-text-with-python
+class HTMLFilter(HTMLParser):
+    text = ""
+    def handle_data(self, data):
+        self.text += data
 
 def handler(event,context):
     """This function will run nightly and will poll for updates to the wiki and update or add the embeddings"""
-    # Request updates
+    # Request any updates from the last 24 hours (forbidden without a user agent)
+    user_agent = "DenhacWikiBot/1.0 (+https://github.com/denhac/wiki-bot)"
     PAST_DAY = (datetime.datetime.now() - datetime.timedelta(days=1))
-    with get(f"https://denhac.org/wp-json/wp/v2/epkb_post_type_1?modified_after={PAST_DAY.isoformat()}") as response:
+    with get(f"https://denhac.org/wp-json/wp/v2/epkb_post_type_1?modified_after={PAST_DAY.isoformat()}", headers={'User-Agent': user_agent}) as response:
         # Read the response data
         articles = loads(response.json())
         for article in articles:
             # Parse the article from article.content.rendered
+            filter = HTMLFilter()
+            filter.feed(article.content.rendered)
+            content = filter.text
 
-            # Shit-test each article to see if it even has content and what not
+            # Check content length (no articles with 10 words or less)
+            if content.count(' ') < 10:
+                continue
 
-            # Update embeddings for each updated post that passes the shit-tests
-            embeddings = together.embeddings.create(
-                input=,
-                model=,
+            # Update embeddings for each updated post
+            embeddings = together.embeddings.create(input=content, model=embedding_model_string)
+
+            # Store embeddings in mongodb
+            mongo.Denhac_Wiki.Articles.update_one(
+                {'_id': article['id']}, # Mirror wordpress' id field
+                {'$set': {[vector_database_field_name]: embeddings}},
+                upsert=True  # Insert the document if it does not exist
             )
-
-            db = mongo.
 
     return "Big Success"

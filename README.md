@@ -8,12 +8,14 @@ Infrastructure as Code generated with [the AWS CDK](https://docs.aws.amazon.com/
 
 ## Development roadmap
 
-* [X] Create a Slack webhook that passes the challenge verification
-* [ ] Create lambda layers for the slack and openai libraries
+* [X] Create a webhook for Slack that passes the challenge verification
+* [ ] Create lambda layers for the slack and togetherai libraries
 * [ ] Validate Slack events in the first function
 * [ ] Lambda function chaining (asynchronously invoke the second function before returning a 200 reply to slack)
-* [ ] Deploy Database
-* [ ] Devise a database population mechanism (nightly lambda that pushes changes from the wiki to the database?)
+* [X] Deploy Database
+* [X] Devise a database population mechanism (nightly lambda that pushes changes from the wiki to the database)
+  * [X] Queries for updates
+  * [ ] Respond to deleted articles
 * [ ] LLM integration in the second function
 * [ ] Reply over Slack
-  * [X] Slack webhook requested
+  * [X] Slack workspace endpoint requested
