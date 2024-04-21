@@ -58,7 +58,7 @@ export class WikibotStack extends Stack {
 
     // Create an EventBridge rule to trigger the function every day at midnight
     const rule = new events.Rule(this, 'DailyTrigger', {
-      schedule: events.Schedule.cron({ minute: '0', hour: '0' }),
+      schedule: events.Schedule.cron({ minute: '0', hour: '0', weekDay: "Sunday" }),
       targets: [new targets.LambdaFunction(populateDatabase)],
     });
 
