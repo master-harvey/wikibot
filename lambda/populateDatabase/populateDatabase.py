@@ -31,7 +31,7 @@ def handler(event,context):
         for article in articles:
             # Parse the article from article.content.rendered
             filter = HTMLFilter()
-            filter.feed(article.content.rendered)
+            filter.feed(article['content']['rendered'])
             content = filter.text
 
             # Check content length (no articles with 10 words or less)
@@ -44,7 +44,11 @@ def handler(event,context):
             # Store embeddings in mongodb
             mongo.Denhac_Wiki.Articles.update_one(
                 {'_id': article['id']}, # Mirror wordpress' id field
-                {'$set': {[vector_database_field_name]: embeddings}},
+                {'$set': {
+                    [vector_database_field_name]: embeddings,
+                    'title': article['title'],
+                    'content': content,
+                }},
                 upsert=True  # Insert the document if it does not exist
             )
 
