@@ -29,23 +29,22 @@ def handler(event,context):
         } # https://docs.together.ai/docs/inference-models
       } # The largest articles have ~2100 tokens so an 8k context model should accurately interpret 3 articles + the user's query
     ])
-    results_as_dict = {article['title']: article['content'] for article in search_results}
 
     # BIG AI STUFF
     prompt = "You are a helpful digital assistant made to answer questions about the Denhac Hackerspace. "
     "Based on the user's query and relevant articles from the hackerspace wiki, provide the most complete, helpful, and concise answer possible. "
-    "If the prompt pertains to Denhac but the answer is not contained in the wiki, do not try to guess the correct information about Denhac and instead inform the user that you do not know. "
+    "If the prompt pertains to Denhac's facilities but the answer is not contained in the wiki, do not try to guess the correct information about Denhac and instead inform the user that you do not know. "
     "<User's Query>\n" + event['message'] + "\n</User's Query>\n "
-    "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Article Title: " + title + "\n" + results_as_dict[title] for title in results_as_dict.keys()]) + "</Wiki Articles>\n"
+    "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
     
     response = together.Complete.create(
         prompt=prompt,
         model=query_model_string,
-        max_tokens = 512,
-        temperature = 0.8,
-        top_k = 60,
-        top_p = 0.6,
-        repetition_penalty = 1.1,
+        # max_tokens = 512,
+        # temperature = 0.8,
+        # top_k = 60,
+        # top_p = 0.6,
+        # repetition_penalty = 1.1,
         # stop = stop_sequences
     )
 
