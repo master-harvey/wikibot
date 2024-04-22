@@ -20,10 +20,10 @@ class HTMLFilter(HTMLParser):
         self.text += data
 
 def handler(event,context):
-    """This function will run nightly and will poll for updates to the wiki and update or add the embeddings"""
+    """This function will run regularly and will poll for updates to the wiki and update or add the embeddings"""
     # Request any updates from the last 24 hours (forbidden without a user agent)
     user_agent = "DenhacWikiBot/1.0 (+https://github.com/master-harvey/wiki-bot)"
-    PAST_DAY = (datetime.datetime.now() - datetime.timedelta(days=1))
+    PAST_DAY = (datetime.datetime.now() - datetime.timedelta(days=8))
     with get(f"https://denhac.org/wp-json/wp/v2/epkb_post_type_1?modified_after={PAST_DAY.isoformat()}", headers={'User-Agent': user_agent}) as response:
         # Read the response data
         articles = loads(response.json())
