@@ -1,11 +1,10 @@
 from json import loads
 import os
-import together
+from together import Together
 from pymongo import MongoClient
 
 mongo = MongoClient(host=os.environ["MONGODB_URI"])
-together.api_key = os.environ["TOGETHER_API_KEY"]
-together = together.Together()
+together = Together(api_key=os.environ["TOGETHER_API_KEY"])
 
 embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
 vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding/index field name.
