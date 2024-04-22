@@ -8,9 +8,6 @@ import {
 } from 'aws-cdk-lib';
 import { FunctionUrlAuthType } from 'aws-cdk-lib/aws-lambda';
 
-// TODO: put credentials into parameter store secrets, cache these secrets in the lambda function
-// TODO: create a lambda layer for the Slack and together.ai/OpenAI python libraries
-
 export class WikibotStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
@@ -26,12 +23,18 @@ export class WikibotStack extends Stack {
     /// End Pipeline codeblock
 
     /// Chatbot infrastructure
+    // Import lambda layers
+    const slackLayer = lambda.LayerVersion.fromLayerVersionArn(this, "slackLayer", "arn:aws:lambda:us-east-2:526411345739:layer:Slack:1")
+    const mongodbLayer = lambda.LayerVersion.fromLayerVersionArn(this, "mongoLayer", "arn:aws:lambda:us-east-2:526411345739:layer:mongo:1")
+    const togetherAiLayer = lambda.LayerVersion.fromLayerVersionArn(this, "togetherLayer", "arn:aws:lambda:us-east-2:526411345739:layer:together:1")
+
     // Validate Slack events, trigger the generateReply function, quickly reply to Slack
     const webhook = new lambda.Function(this, "SlackWebhook", {
       functionName: "WikiBot-SlackWebhook",
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: "slackWebhook.handler",
-      code: lambda.Code.fromAsset('./lambda/slackWebhook')
+      code: lambda.Code.fromAsset('./lambda/slackWebhook'),
+      layers: [slackLayer]
     })
     const slackEndoint = webhook.addFunctionUrl({
       authType: FunctionUrlAuthType.NONE,
@@ -44,7 +47,8 @@ export class WikibotStack extends Stack {
       functionName: "WikiBot-GenerateReply",
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: "generateReply.handler",
-      code: lambda.Code.fromAsset('./lambda/generateReply')
+      code: lambda.Code.fromAsset('./lambda/generateReply'),
+      layers: [togetherAiLayer, slackLayer, mongodbLayer]
     })
     generateReply.grantInvoke(webhook)
     
@@ -53,7 +57,8 @@ export class WikibotStack extends Stack {
       functionName: "WikiBot-PopulateDatabase",
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: "populateDatabase.handler",
-      code: lambda.Code.fromAsset('./lambda/populateDatabase')
+      code: lambda.Code.fromAsset('./lambda/populateDatabase'),
+      layers: [togetherAiLayer, mongodbLayer]
     })
 
     // Create an EventBridge rule to trigger the function every day at midnight
