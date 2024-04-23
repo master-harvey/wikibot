@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import {
-  Stack, StackProps,
+  Stack, StackProps, Duration,
   CfnOutput, pipelines,
   aws_lambda as lambda,
   aws_events as events,
@@ -48,7 +48,8 @@ export class WikibotStack extends Stack {
       runtime: lambda.Runtime.PYTHON_3_11,
       handler: "generateReply.handler",
       code: lambda.Code.fromAsset('./lambda/generateReply'),
-      layers: [AiLayer, slackLayer, mongodbLayer]
+      layers: [AiLayer, slackLayer, mongodbLayer],
+      timeout: Duration.seconds(30)
     })
     generateReply.grantInvoke(webhook)
     
@@ -58,7 +59,8 @@ export class WikibotStack extends Stack {
       runtime: lambda.Runtime.PYTHON_3_11,
       handler: "populateDatabase.handler",
       code: lambda.Code.fromAsset('./lambda/populateDatabase'),
-      layers: [AiLayer, mongodbLayer]
+      layers: [AiLayer, mongodbLayer],
+      timeout: Duration.seconds(30)
     })
 
     // Create an EventBridge rule to trigger the function every day at midnight
