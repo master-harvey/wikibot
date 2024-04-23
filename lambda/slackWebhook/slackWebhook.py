@@ -1,5 +1,6 @@
 from json import loads, dumps
 import boto3
+from slack import Slack
 
 lambda_client = boto3.client('lambda')
 

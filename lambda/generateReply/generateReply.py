@@ -1,10 +1,10 @@
 from json import loads
 import os
-from together import Together
+from openai import OpenAI
 from pymongo import MongoClient
 
 mongo = MongoClient(host=os.environ["MONGODB_URI"])
-together = Together(api_key=os.environ["TOGETHER_API_KEY"])
+AI = OpenAI(api_key=os.environ["TOGETHER_API_KEY"], base_url='https://api.together.ai/v1')
 
 embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
 vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding/index field name.
@@ -15,7 +15,7 @@ def handler(event,context):
     event = loads(event['body']) #convert plain text json to python dictionary
 
     # Query the database https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/
-    message_embedding = together.embeddings.create(input=event['message'], model=embedding_model_string)
+    message_embedding = AI.embeddings.create(input=event['message'], model=embedding_model_string)
     
     search_results = mongo.Denhac_Wiki.Articles.aggregate([
       {
@@ -36,7 +36,7 @@ def handler(event,context):
     "<User's Query>\n" + event['message'] + "\n</User's Query>\n "
     "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
     
-    response = together.Complete.create(
+    response = AI.Complete.create(
         prompt=prompt,
         model=query_model_string,
         # max_tokens = 512,
