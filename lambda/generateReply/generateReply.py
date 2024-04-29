@@ -35,12 +35,13 @@ def handler(event,context):
     "If the prompt pertains to Denhac's facilities but the answer is not contained in the wiki, do not try to guess the correct information about Denhac and instead inform the user that you do not know. "
     "<User's Query>\n" + event['message'] + "\n</User's Query>\n "
     "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
+    # TODO: Fill the remaining context window with the preceding conversation, without this it won't feel like a 'chatbot'
     
     response = AI.Complete.create(
         prompt=prompt,
         model=query_model_string,
+        temperature = 0.1,
         # max_tokens = 512,
-        # temperature = 0.8,
         # top_k = 60,
         # top_p = 0.6,
         # repetition_penalty = 1.1,
