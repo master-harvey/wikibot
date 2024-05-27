@@ -2,8 +2,13 @@ from json import loads
 import os
 from openai import OpenAI
 from pymongo import MongoClient
+import urllib.parse
 
-mongo = MongoClient(host=os.environ["MONGODB_URI"])
+mongo = MongoClient(os.environ["MONGODB_URI"]
+        .replace('<session token (for AWS IAM Roles)>',urllib.parse.quote_plus(os.environ["AWS_SESSION_TOKEN"]))
+        .replace('<AWS access key>',urllib.parse.quote_plus(os.environ["AWS_ACCESS_KEY_ID"]))
+        .replace('<AWS secret key>',urllib.parse.quote_plus(os.environ["AWS_SECRET_ACCESS_KEY"]))
+)
 AI = OpenAI(api_key=os.environ["TOGETHER_API_KEY"], base_url='https://api.together.ai/v1')
 
 embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
@@ -15,7 +20,7 @@ def handler(event,context):
     event = loads(event['body']) #convert plain text json to python dictionary
 
     # Query the database https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/
-    message_embedding = AI.embeddings.create(input=event['message'], model=embedding_model_string)
+    message_embedding = AI.embeddings.create(input=event['message'], model=embedding_model_string).data[0].embedding
     
     search_results = mongo.Denhac_Wiki.Articles.aggregate([
       {

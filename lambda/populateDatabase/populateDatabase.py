@@ -4,13 +4,15 @@ from botocore.vendored import requests
 from datetime import datetime
 from html.parser import HTMLParser
 from openai import OpenAI
+import urllib.parse
 import os
 
 # Takes the default connection string provided in the 'Donnecting with MongoDB [python] Driver' wizard in the Atlas dashboard.
 mongo = MongoClient(os.environ["MONGODB_URI"]
-        .replace('<session token (for AWS IAM Roles)>',os.environ["AWS_SESSION_TOKEN"])
-        .replace('<AWS access key>',os.environ["AWS_ACCESS_KEY_ID"])
-        .replace('<AWS secret key>',os.environ["AWS_SECRET_ACCESS_KEY"]))
+        .replace('<session token (for AWS IAM Roles)>',urllib.parse.quote_plus(os.environ["AWS_SESSION_TOKEN"]))
+        .replace('<AWS access key>',urllib.parse.quote_plus(os.environ["AWS_ACCESS_KEY_ID"]))
+        .replace('<AWS secret key>',urllib.parse.quote_plus(os.environ["AWS_SECRET_ACCESS_KEY"]))
+        )
 
 AI = OpenAI(api_key=os.environ["TOGETHER_API_KEY"], base_url='https://api.together.ai/v1')
 embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
@@ -29,7 +31,7 @@ def handler(event,context):
     PAST_WEEK = (datetime.datetime.now() - datetime.timedelta(days=7))
     with requests.get(f"https://denhac.org/wp-json/wp/v2/epkb_post_type_1?modified_after={PAST_WEEK.isoformat()}", headers={'User-Agent': user_agent}) as response:
         # Read the response data
-        articles = loads(response.json())
+        articles = response.json()
         print("Response Loaded")
         for article in articles:
             # Parse the article from article.content.rendered
@@ -44,7 +46,7 @@ def handler(event,context):
                 continue
 
             # Update embeddings for each updated post
-            embeddings = AI.embeddings.create(input=content, model=embedding_model_string)
+            embeddings = AI.embeddings.create(input=content, model=embedding_model_string).data[0].embedding
             print("Embeddings generated")
 
             # Store embeddings in mongodb
