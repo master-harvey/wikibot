@@ -26,15 +26,12 @@ def populate():
             # Read the response data
             articles = response.json()
             print(f"Response Loaded for {startDate.isoformat()} - {(startDate+window).isoformat()}",len(articles))
-            if(len(articles) > 0):
-                print(dir(articles[0]))
                 
             for article in articles:
                 # Parse the article from article.content.rendered
                 soup = BeautifulSoup(article['content']['rendered'], features="html.parser")
                 content = soup.get_text()
-                print("Rendered: ", article['title'])
-                print(content)
+                print("Rendered: ", article['title']['rendered'])
 
                 # Check content length (no articles with 10 words or less)
                 if content.count(' ') < 10:
@@ -50,7 +47,7 @@ def populate():
                     {'_id': article['id']}, # Mirror wordpress' id field
                     {'$set': {
                         str(vector_database_field_name): embeddings,
-                        'title': article['title'],
+                        'title': article['title']['rendered'],
                         'URL': article['link'],
                         'content': content,
                     }},

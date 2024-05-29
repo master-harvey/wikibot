@@ -25,12 +25,11 @@ def handler(event,context):
     with requests.get(f"https://denhac.org/wp-json/wp/v2/epkb_post_type_1?modified_after={PAST_WEEK.isoformat()}", headers={'User-Agent': user_agent}) as response:
         # Read the response data
         articles = response.json()
-        print("Response Loaded", articles)
         for article in articles:
             # Parse the article from article.content.rendered
             soup = BeautifulSoup(article['content']['rendered'])
             content = soup.get_text()
-            print("Rendered " + article['title'])
+            print("Rendered " + article['title']['rendered'])
 
             # Check content length (no articles with 10 words or less)
             if content.count(' ') < 10:
@@ -46,7 +45,7 @@ def handler(event,context):
                 {'_id': article['id']}, # Mirror wordpress' id field
                 {'$set': {
                     [vector_database_field_name]: embeddings,
-                    'title': article['title'],
+                    'title': article['title']['rendered'],
                     'URL': article['link'],
                     'content': content,
                 }},
