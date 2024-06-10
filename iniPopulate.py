@@ -5,9 +5,8 @@ import sys
 from datetime import timedelta, datetime
 from bs4 import BeautifulSoup
 import time
-import os
 
-# Takes the default connection string provided in the 'Donnecting with MongoDB [python] Driver' wizard in the Atlas dashboard.
+# Takes the default connection string provided in the 'Connecting with MongoDB [python] Driver' wizard in the Atlas dashboard.
 mongo = MongoClient(sys.argv[1].replace("<username>",sys.argv[2]).replace("<password>",sys.argv[3]))
 
 AI = OpenAI(api_key=sys.argv[4], base_url='https://api.together.ai/v1')
