@@ -41,13 +41,24 @@ def handler(event,context):
     prompt = "You are a helpful digital assistant made to answer questions about the Denhac Hackerspace. "
     "Based on the user's query and relevant articles from the hackerspace wiki, provide the most complete, helpful, and concise answer possible. "
     "If the prompt pertains to Denhac's facilities but the answer is not contained in the wiki, do not try to guess the correct information about Denhac and instead inform the user that you do not know. "
-    "<User's Query>\n" + event['message'] + "\n</User's Query>\n "
-    "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title']['rendered'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
-    # TODO: Fill the remaining context window with the preceding conversation, without this it won't feel like a 'chatbot'
     
-    response = AI.Complete.create(
-        prompt=prompt,
-        model=query_model_string,
+    response = AI.chat.completions.create(
+      messages=[
+        {
+          "role": "prompt",
+          "content": prompt
+        },
+        {
+          "role": "user",
+          "content": event['message']
+        },
+        {
+          "role": "system",
+          "content": "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title']['rendered'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
+        }
+        # TODO: Fill the remaining context window with the preceding conversation, without this it won't feel like a 'chatbot'
+      ],
+      model=query_model_string,
         temperature = 0.1,
         # max_tokens = 512,
         # top_k = 60,
@@ -57,6 +68,6 @@ def handler(event,context):
     )
 
     # Send the reply over slack
-    ### send slack this: response["output"]["choices"][0]["text"]
-
-    return "Big Success: " + response["output"]["choices"][0]["text"]
+    ### send slack this: response.choices[0].message.content
+    print(response.choices[0].message.content)
+    return "Big Success: " + response.choices[0].message.content
