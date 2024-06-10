@@ -26,8 +26,8 @@ export class WikibotStack extends Stack {
     // Import lambda layers
     const AiLayer = lambda.LayerVersion.fromLayerVersionArn(this, "AILayer", "arn:aws:lambda:us-east-2:526411345739:layer:openAI:3")
     const slackLayer = lambda.LayerVersion.fromLayerVersionArn(this, "slackLayer", "arn:aws:lambda:us-east-2:526411345739:layer:slack:4")
-    const mongodbLayer = lambda.LayerVersion.fromLayerVersionArn(this, "mongoLayer", "arn:aws:lambda:us-east-2:526411345739:layer:pymongo:4")
-    const beautifulLayer = lambda.LayerVersion.fromLayerVersionArn(this, "beautifulLayer", "arn:aws:lambda:us-east-2:526411345739:layer:beautifulsoup4:1")
+    const mongodbLayer = lambda.LayerVersion.fromLayerVersionArn(this, "mongoLayer", "arn:aws:lambda:us-east-2:526411345739:layer:pymongo:6")
+    const beautifulLayer = lambda.LayerVersion.fromLayerVersionArn(this, "beautifulLayer", "arn:aws:lambda:us-east-2:526411345739:layer:beautifulsoup4:8")
 
     // Validate Slack events, trigger the generateReply function, quickly reply to Slack
     const webhook = new lambda.Function(this, "SlackWebhook", {
