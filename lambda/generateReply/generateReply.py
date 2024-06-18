@@ -19,8 +19,8 @@ query_model_string = 'meta-llama/Llama-3-8b-chat-hf' # model API string from Tog
 
 def handler(event,context):
     """The lambda handler that will actually query the database and send a reply over Slack"""
-    print("EVENT: ",event," :EVENT")
-    print("CONTEXT: ",context," :CONTEXT")
+    # print("EVENT: ",event," :EVENT")
+    # print("CONTEXT: ",context," :CONTEXT")
     try:
       event = loads(event['body']) #convert plain text json to python dictionary
     except:
@@ -74,14 +74,14 @@ def handler(event,context):
 
     # Send the reply over slack
     ### send slack this: response.choices[0].message.content
-    http.request(
-      'POST',
-      "https://slack.com/api/chat.postMessage",
+    slack_response = http.request('POST', "https://slack.com/api/chat.postMessage",
+      headers={"Content-Type":"application/json", "Authorization":"Bearer "+os.environ['SLACK_OAUTH_TOKEN']},
       body=dumps({"channel":event['event']['channel'],
                   "thread_ts":event['event']['ts'], #always reply in thread, new thread for a new conversation
                   "text":ai_response.choices[0].message.content
-                }),
-      headers={"Content-Type":"application/json", "Authorization":"Bearer "+os.environ['SLACK_OAUTH_TOKEN']}
+                })
     )
+    print("Slack Response: ", slack_response.status, slack_response.reason)
     
+    print("Big Success: " + ai_response.choices[0].message.content)
     return "Big Success: " + ai_response.choices[0].message.content

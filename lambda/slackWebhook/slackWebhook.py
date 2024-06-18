@@ -8,8 +8,8 @@ def handler(event,context):
     This function will be deployed with a function URL that will serve as Slack's request endpoint. 
     Because slack requires 'a swift and confident HTTP 200' reponse from the server this function simply validates
      the event before passing everything to the generateReply function that oversees the inference and response to the user"""
-    print("EVENT: ",event," :EVENT")
-    print("CONTEXT: ",context," :CONTEXT")
+    # print("EVENT: ",event," :EVENT")
+    # print("CONTEXT: ",context," :CONTEXT")
     try:
         event = loads(event['body'])
     except:
@@ -25,5 +25,6 @@ def handler(event,context):
         InvocationType='Event',  #Specifies asynchronous execution
         Payload=dumps({"body":event})
     )
-
+    
+    print("Big Success")
     return { "statusCode": 200 }
