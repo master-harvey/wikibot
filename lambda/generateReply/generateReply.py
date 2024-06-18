@@ -1,7 +1,8 @@
-from json import loads
+from json import loads, dumps
 import os
 from openai import OpenAI
 from pymongo import MongoClient
+import urllib3
 import urllib.parse
 
 mongo = MongoClient(os.environ["MONGODB_URI"]
@@ -10,6 +11,7 @@ mongo = MongoClient(os.environ["MONGODB_URI"]
         .replace('<AWS secret key>',urllib.parse.quote_plus(os.environ["AWS_SECRET_ACCESS_KEY"]))
 )
 AI = OpenAI(api_key=os.environ["TOGETHER_API_KEY"], base_url='https://api.together.ai/v1')
+http = urllib3.PoolManager()
 
 embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
 vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding/index field name.
@@ -17,13 +19,15 @@ query_model_string = 'meta-llama/Llama-3-8b-chat-hf' # model API string from Tog
 
 def handler(event,context):
     """The lambda handler that will actually query the database and send a reply over Slack"""
+    print("EVENT: ",event," :EVENT")
+    print("CONTEXT: ",context," :CONTEXT")
     try:
       event = loads(event['body']) #convert plain text json to python dictionary
     except:
       event = event['body']
 
     # Query the database https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-stage/
-    message_embedding = AI.embeddings.create(input=event['message'], model=embedding_model_string).data[0].embedding
+    message_embedding = AI.embeddings.create(input=event['event']['text'], model=embedding_model_string).data[0].embedding
     
     search_results = list(mongo.Denhac_Wiki.Articles.aggregate([
       {
@@ -42,7 +46,7 @@ def handler(event,context):
     "Based on the user's query and relevant articles from the hackerspace wiki, provide the most complete, helpful, and concise answer possible. "
     "If the prompt pertains to Denhac's facilities but the answer is not contained in the wiki, do not try to guess the correct information about Denhac and instead inform the user that you do not know. "
     
-    response = AI.chat.completions.create(
+    ai_response = AI.chat.completions.create(
       messages=[
         {
           "role": "prompt",
@@ -50,13 +54,13 @@ def handler(event,context):
         },
         {
           "role": "user",
-          "content": event['message']
+          "content": event['event']['text']
         },
         {
           "role": "system",
           "content": "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title']['rendered'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
         }
-        # TODO: Fill the remaining context window with the preceding conversation, without this it won't feel like a 'chatbot'
+        # TODO: Fill the remaining context window with the preceding conversation in this thread, without this it won't feel like a 'chatbot'
       ],
       model=query_model_string,
         temperature = 0.1,
@@ -66,8 +70,18 @@ def handler(event,context):
         # repetition_penalty = 1.1,
         # stop = stop_sequences
     )
+    # print(ai_response.choices[0].message.content)
 
     # Send the reply over slack
     ### send slack this: response.choices[0].message.content
-    print(response.choices[0].message.content)
-    return "Big Success: " + response.choices[0].message.content
+    http.request(
+      'POST',
+      "https://slack.com/api/chat.postMessage",
+      body=dumps({"channel":event['event']['channel'],
+                  "thread_ts":event['event']['ts'], #always reply in thread, new thread for a new conversation
+                  "text":ai_response.choices[0].message.content
+                }),
+      headers={"Content-Type":"application/json", "Authorization":"Bearer "+os.environ['SLACK_OAUTH_TOKEN']}
+    )
+    
+    return "Big Success: " + ai_response.choices[0].message.content

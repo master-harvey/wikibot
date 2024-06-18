@@ -1,6 +1,5 @@
 from json import loads, dumps
 import boto3
-from slack import Slack
 
 lambda_client = boto3.client('lambda')
 
@@ -11,10 +10,10 @@ def handler(event,context):
      the event before passing everything to the generateReply function that oversees the inference and response to the user"""
     print("EVENT: ",event," :EVENT")
     print("CONTEXT: ",context," :CONTEXT")
-    event = loads(event['body']) #convert plain text json to python dictionary
-
-    # Verify the event is a slack event, throw error on failure
-    # TODO: Extract the X-Slack-Signature header and use it to verify this message came from Slack: https://api.slack.com/authentication/verifying-requests-from-slack
+    try:
+        event = loads(event['body'])
+    except:
+        event = event['body'] #convert plain text json to python dictionary
 
     # Event validation (runs one time when the endpoint is added to Slack)
     if event['type'] == 'url_verification':
@@ -24,7 +23,7 @@ def handler(event,context):
     lambda_client.invoke(
         FunctionName='WikiBot-GenerateReply',
         InvocationType='Event',  #Specifies asynchronous execution
-        Payload=dumps(event)
+        Payload=dumps({"body":event})
     )
 
     return { "statusCode": 200 }
