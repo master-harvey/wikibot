@@ -58,7 +58,7 @@ def handler(event,context):
         },
         {
           "role": "system",
-          "content": "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title']['rendered'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
+          "content": "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
         }
       ],
       model=query_model_string,
