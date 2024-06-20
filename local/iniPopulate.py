@@ -6,15 +6,14 @@ from datetime import timedelta, datetime
 from bs4 import BeautifulSoup
 import time
 
-# Takes the default connection string provided in the 'Connecting with MongoDB [python] Driver' wizard in the Atlas dashboard.
-mongo = MongoClient(sys.argv[1].replace("<username>",sys.argv[2]).replace("<password>",sys.argv[3]))
-
-AI = OpenAI(api_key=sys.argv[4], base_url='https://api.together.ai/v1')
-embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
-vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding/index field name.
-
 def populate():
     """To be run once locally to initialize the database with all current articles"""
+    # Takes the default connection string provided in the 'Connecting with MongoDB [python] Driver' wizard in the Atlas dashboard.
+    mongo = MongoClient(sys.argv[1].replace("<username>",sys.argv[2]).replace("<password>",sys.argv[3]))
+    AI = OpenAI(api_key=sys.argv[4], base_url='https://api.together.ai/v1')
+    embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
+    vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding/index field name.
+    
     # Request any updates from the last 24 hours (forbidden without a user agent)
     user_agent = "DenhacWikiBot/1.0 (+https://github.com/master-harvey/wikibot)"
     # Limited to 10 articles per request, step through a sliding window of 7 days to eventually retrieve all articles from 2021 to now

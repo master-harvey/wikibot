@@ -5,10 +5,10 @@ FROM python:alpine
 WORKDIR /app
 
 # Install any necessary dependencies
-RUN pip install requests
+RUN pip install requests pymongo openai beautifulsoup4
 
 # Copy the current directory contents into the container at /app
-COPY ./ini_populate /app/ini_populate
+COPY ./iniPopulate.py /app/iniPopulate.py
 
 # Run ini_populate.py when the container launches
-CMD ["python", "ini_populate.py"]
+CMD ["python", "iniPopulate.py"]
