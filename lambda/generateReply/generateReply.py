@@ -60,7 +60,6 @@ def handler(event,context):
           "role": "system",
           "content": "<Wiki Articles>\n" + "\n\n----------\n\n".join(["Title: " + article['title']['rendered'] + "\n" + article['content'] for article in search_results]) + "</Wiki Articles>\n"
         }
-        # TODO: Fill the remaining context window with the preceding conversation in this thread, without this it won't feel like a 'chatbot'
       ],
       model=query_model_string,
         temperature = 0.1,
