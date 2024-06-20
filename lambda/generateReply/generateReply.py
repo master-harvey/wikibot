@@ -15,7 +15,7 @@ http = urllib3.PoolManager()
 
 embedding_model_string = 'togethercomputer/m2-bert-80M-8k-retrieval' # model API string from Together.
 vector_database_field_name = 'embedding_together_m2-bert-8k-retrieval' # define your embedding/index field name.
-query_model_string = 'meta-llama/Llama-3-8b-chat-hf' # model API string from Together.
+query_model_string = 'mistralai/Mistral-7B-Instruct-v0.2' # model API string from Together.
 
 def handler(event,context):
     """The lambda handler that will actually query the database and send a reply over Slack"""
@@ -35,16 +35,18 @@ def handler(event,context):
           "index": "vector_embeddings",
           "queryVector": message_embedding,
           "path": vector_database_field_name,
-          "numCandidates": 45, # this should be 10-20x the limit
-          "limit": 3, # the number of documents to return in the results
+          "numCandidates": 75, # this should be 10-20x the limit
+          "limit": 5, # the number of documents to return in the results
         } # https://docs.together.ai/docs/inference-models
       } # The largest articles have ~2100 tokens so an 8k context model should accurately interpret 3 articles + the user's query
     ]))
 
     # BIG AI STUFF
-    prompt = "You are a helpful digital assistant made to answer questions about the Denhac Hackerspace. "
+    prompt = "You are a helpful digital assistant made to answer questions about the Denhac Hackerspace, with safety as your number one concern. "
     "Based on the user's query and relevant articles from the hackerspace wiki, provide the most complete, helpful, and concise answer possible. "
-    "If the prompt pertains to Denhac's facilities but the answer is not contained in the wiki, do not try to guess the correct information about Denhac and instead inform the user that you do not know. "
+    "The most important part of your job is to make sure the information you provide the user comes from the denhac wiki. "
+    "Under no circumstances should you talk about individual members of denhac. If a question is asked about a member by name or by role you should say you cannot answer the question and that they should ask in the #general slack channel. "
+    "If the prompt pertains to Denhac's facilities but the answer is not contained in the wiki, do not try to guess the correct information about denhac or the equipment and instead inform the user that the answer to their question is not described by the wiki articles you have access to. "
     
     ai_response = AI.chat.completions.create(
       messages=[
